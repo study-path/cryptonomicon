@@ -8,9 +8,20 @@
         @keydown.enter="add"
         name="ticker"
         id="ticker"
+        required
       />
-      <div class="bg-slate-200" if="checkTicker(ticker)">{{ ticker }}</div>
-      <label for="">Ticker already added</label>
+      <select v-model="tickers">
+        <option
+          v-for="tickerName in tickers"
+          :key="tickerName.id"
+          value="tickerName"
+        ></option>
+      </select>
+      <div class="p-10 bg-slate-300 rounded-md">{{ ticker.toUpperCase() }}</div>
+
+      <div v-if="existTicker" for="" class="decoration-red-50">
+        Ticker already added
+      </div>
       <button @click="add">Add</button>
     </div>
     <template v-if="tickers.length">
@@ -26,7 +37,7 @@
           :key="index"
           @click="select(t)"
         >
-          <div>{{ t.name }} - USD</div>
+          <div>{{ t.name.toUpperCase() }} - USD</div>
           <div>{{ t.price }}</div>
 
           <button @click.stop="deleteTicker(t)">Delete</button>
@@ -58,8 +69,16 @@ export default {
       tickers: [],
       sel: null,
       graph: [],
+      existTicker: false,
     };
   },
+  created() {
+    const tickersData = localStorage.getItem("cryptonomicon-list");
+    if (tickersData) {
+      this.tickers = JSON.parse(tickersData);
+    }
+  },
+
   methods: {
     add() {
       const currentTicker = {
@@ -67,7 +86,20 @@ export default {
         price: "-",
       };
 
-      this.tickers.push(currentTicker);
+      localStorage.setItem("cryptonomicon-list", JSON.stringify(this.tickers));
+
+      if (this.tickers.length) {
+        const exist = this.tickers.filter((t) => t.name === currentTicker.name);
+        if (exist.length) {
+          this.existTicker = true;
+        } else {
+          this.existTicker = false;
+          this.tickers.push(currentTicker);
+        }
+      } else {
+        this.existTicker = false;
+        this.tickers.push(currentTicker);
+      }
 
       setInterval(async () => {
         const f = await fetch(
@@ -99,10 +131,6 @@ export default {
       return this.graph.map(
         (price) => 5 + ((price - minValue) * 95) / (maxValue - minValue)
       );
-    },
-    checkTicker(name) {
-      const res = this.tickers.filter((ticker) => ticker != name);
-      return res;
     },
   },
 };
