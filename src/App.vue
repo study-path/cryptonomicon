@@ -1,5 +1,8 @@
 <template>
   <div>
+    <TestComponents />
+  </div>
+  <div>
     <div class="ticker">
       <label class="bg-orange-900">Ticker</label>
       <input
@@ -63,6 +66,7 @@
 <script>
 export default {
   name: "App",
+
   data() {
     return {
       ticker: "",
@@ -76,10 +80,26 @@ export default {
     const tickersData = localStorage.getItem("cryptonomicon-list");
     if (tickersData) {
       this.tickers = JSON.parse(tickersData);
+      this.tickers.forEach((ticker) => {
+        this.subscribeToUpdates(ticker.name);
+      });
     }
   },
-
   methods: {
+    subscribeToUpdates(tickerName) {
+      setInterval(async () => {
+        const f = await fetch(
+          `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=42900433546e3911f97fcb744153bb343102a612c5cf36f1a948b460f9f1c8d2`
+        );
+        const data = await f.json();
+        this.tickers.find((t) => t.name === tickerName).price =
+          data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
+
+        if (this.sel?.name === tickerName) {
+          this.graph.push(data.USD);
+        }
+      }, 3000);
+    },
     add() {
       const currentTicker = {
         name: this.ticker,
@@ -87,6 +107,8 @@ export default {
       };
 
       localStorage.setItem("cryptonomicon-list", JSON.stringify(this.tickers));
+
+      this.subscribeToUpdates(currentTicker.name);
 
       if (this.tickers.length) {
         const exist = this.tickers.filter((t) => t.name === currentTicker.name);
@@ -100,19 +122,6 @@ export default {
         this.existTicker = false;
         this.tickers.push(currentTicker);
       }
-
-      setInterval(async () => {
-        const f = await fetch(
-          `https://min-api.cryptocompare.com/data/price?fsym=${currentTicker.name}&tsyms=USD&api_key=42900433546e3911f97fcb744153bb343102a612c5cf36f1a948b460f9f1c8d2`
-        );
-        const data = await f.json();
-        this.tickers.find((t) => t.name === currentTicker.name).price =
-          data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
-
-        if (this.sel?.name === currentTicker.name) {
-          this.graph.push(data.USD);
-        }
-      }, 3000);
 
       this.ticker = "";
     },
