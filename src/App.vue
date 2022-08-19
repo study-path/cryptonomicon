@@ -22,10 +22,10 @@
       <div v-if="existTicker" for="" class="decoration-red-50">
         Ticker already added
       </div>
-      <button @click="add">Add</button>
+      <AddButton />
     </div>
     <template v-if="tickers.length">
-      <hr />
+      <hr class="w-full border-t border-gray-600 my-4" />
       <div>
         <button class="p-10" v-if="page > 1" @click="page = page - 1">
           Back
@@ -35,7 +35,7 @@
         </button>
         <div>Filter :<input v-model="filter" @input="page = 1" /></div>
       </div>
-      <hr />
+      <hr class="w-full border-t border-gray-600 my-4" />
       <div class="container">
         <div
           class="flex flex-col justify-items-center"
@@ -70,19 +70,12 @@
 </template>
 
 <script>
-// The same code in watch / critical: 3 points
-// Timer: / 5 points
-// Numbers of request / 5 points
-// Queries directly within the component / ???
-// Magis strings and numbers(URL, 5000 setTimeout, etc) / 1 point
-// Error handling API / 2 points
-//
-//
-//
-
+import AddButton from "./components/AddButton.vue";
 export default {
   name: "App",
-
+  components: {
+    AddButton,
+  },
   data() {
     return {
       ticker: "",
@@ -120,7 +113,7 @@ export default {
     subscribeToUpdates(tickerName) {
       setInterval(async () => {
         const f = await fetch(
-          `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=42900433546e3911f97fcb744153bb343102a612c5cf36f1a948b460f9f1c8d2`
+          `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=4abdfd2ec08d3c936b78a1ac9b895bccdee3b7adf098d66e096ad87c26970636`
         );
         const data = await f.json();
 
@@ -130,7 +123,7 @@ export default {
         if (this.selectedTicker?.name === tickerName) {
           this.graph.push(data.USD);
         }
-      }, 90000);
+      }, 80000);
 
       this.ticker = "";
     },
@@ -284,11 +277,6 @@ dl {
   border: 1px solid rgb(75, 190, 224);
   padding: 0 10px;
 }
-/* .box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-} */
 
 .axisX {
   border-bottom: 1px groove gray;
